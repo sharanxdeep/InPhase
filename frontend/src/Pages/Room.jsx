@@ -311,7 +311,7 @@ const Room = () => {
 
   useEffect(() => {
     const fetchRoom = async () => {
-      const res = await fetch(`http://localhost:5001/api/rooms/${roomId}`);
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/rooms/${roomId}`);
       const room = await res.json();
       const myHostId = localStorage.getItem("hostId");
       setIsHost(room.hostId === myHostId);

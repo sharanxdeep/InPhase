@@ -20,7 +20,7 @@ const Home = () => {
       }
       localStorage.setItem("hostName", name.trim());
 
-      const res = await fetch("http://localhost:5001/api/rooms", {
+      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/rooms`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ hostId, hostName: name.trim(), videoId: null }),
