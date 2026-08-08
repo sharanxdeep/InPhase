@@ -1,4 +1,4 @@
-import Room from "../Models/Room.js";
+import Room from "../Models/room.js";
 
 const roomHosts = new Map();
 
