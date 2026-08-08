@@ -536,6 +536,7 @@ const Room = () => {
           <div
             ref={messagesScrollRef}
             className="flex-1 min-h-0 overflow-y-auto px-3 py-3 flex flex-col gap-1"
+            style={{ overscrollBehavior: "contain" }}
           >
             {messages.length === 0 && (
               <div className="flex-1 flex items-center justify-center">
@@ -580,7 +581,7 @@ const Room = () => {
               onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
               placeholder="Message"
               maxLength={1000}
-              className="flex-1 min-w-0 bg-white/5 rounded-full px-4 py-2.5 text-sm placeholder:text-white/25 focus:outline-none focus:bg-white/10"
+              className="flex-1 min-w-0 bg-white/5 rounded-full px-4 py-2.5 text-base placeholder:text-white/25 focus:outline-none focus:bg-white/10"
             />
             <button
               onClick={handleSendMessage}
