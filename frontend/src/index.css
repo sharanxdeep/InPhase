@@ -1,13 +1,12 @@
 @import "tailwindcss";   
 
-html, body {
+html, body, #root {
+  height: 100%;
+  margin: 0;
   overscroll-behavior: none;
 }
 
-.no-scrollbar {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
+body {
+  position: fixed;
+  width: 100%;
 }

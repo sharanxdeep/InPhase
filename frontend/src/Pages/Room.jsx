@@ -57,6 +57,7 @@ const Room = () => {
   const [nameError, setNameError] = useState("");
   const [hostCheckDone, setHostCheckDone] = useState(false);
   const [viewportHeight, setViewportHeight] = useState(null);
+  const [viewportOffset, setViewportOffset] = useState(0);
   const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
 
@@ -151,13 +152,18 @@ const Room = () => {
     const vv = window.visualViewport;
     const handleResize = () => {
       setViewportHeight(vv.height);
+      setViewportOffset(vv.offsetTop);
       requestAnimationFrame(() => {
         messagesEndRef.current?.scrollIntoView({ block: "end" });
       });
     };
     vv.addEventListener("resize", handleResize);
+    vv.addEventListener("scroll", handleResize);
     handleResize();
-    return () => vv.removeEventListener("resize", handleResize);
+    return () => {
+      vv.removeEventListener("resize", handleResize);
+      vv.removeEventListener("scroll", handleResize);
+    };
   }, []);
 
   useEffect(() => {
@@ -166,7 +172,17 @@ const Room = () => {
 
   useEffect(() => {
     const hostId = localStorage.getItem("hostId");
-    socket.emit("join-room", { roomId, hostId });
+    const joinRoom = () => {
+      socket.emit("join-room", { roomId, hostId });
+    };
+
+    joinRoom(); // initial join
+
+    socket.on("connect", joinRoom); // re-join on every reconnect too
+
+    return () => {
+      socket.off("connect", joinRoom);
+    };
   }, [roomId]);
 
   useEffect(() => {
@@ -349,7 +365,6 @@ const Room = () => {
     socket.emit("request-sync", { roomId });
   }, [isPlayerReady, isHost, roomId]);
 
-
   if (!canEnterRoom) {
     return (
       <div className="min-h-screen w-full bg-[#0a0a0f] font-body text-white flex flex-col items-center justify-center px-6 text-center">
@@ -364,7 +379,7 @@ const Room = () => {
           }}
           maxLength={30}
           onKeyDown={(e) => e.key === "Enter" && handleSetGuestName()}
-          className="w-full max-w-[260px] bg-white/5 border border-white/10 rounded-full px-5 py-3 text-sm text-center placeholder:text-white/25 focus:outline-none focus:bg-white/10"
+          className="w-full max-w-[260px] bg-white/5 border border-white/10 rounded-full px-5 py-3 text-base text-center placeholder:text-white/25 focus:outline-none focus:bg-white/10"
         />
         {nameError && <p className="text-xs text-red-400 mt-2 mb-1">{nameError}</p>}
         <button
@@ -383,6 +398,10 @@ const Room = () => {
     <div
       className="w-full flex flex-col bg-[#0a0a0f] font-body text-white overflow-hidden"
       style={{
+        position: "fixed",
+        top: viewportOffset,
+        left: 0,
+        right: 0,
         height: viewportHeight ? `${viewportHeight}px` : "100dvh",
         paddingTop: "env(safe-area-inset-top)",
         paddingLeft: "env(safe-area-inset-left)",
@@ -390,7 +409,6 @@ const Room = () => {
       }}
     >
       <div className="w-full max-w-2xl mx-auto px-3 sm:px-6 flex flex-col flex-1 min-h-0">
-        {/* Header */}
         <div className="flex items-center justify-between py-2 sm:py-3 shrink-0">
           <span className="font-display font-medium text-sm sm:text-base text-white/70">
             InPhase
@@ -403,7 +421,6 @@ const Room = () => {
           </span>
         </div>
 
-        {/* Video — pushed as high as possible */}
         <div className="relative rounded-xl overflow-hidden bg-black aspect-video shrink-0">
           <div id="yt-player" className="w-full h-full" />
 
@@ -417,7 +434,7 @@ const Room = () => {
                     placeholder="youtube.com/watch?v=..."
                     value={videoUrlInput}
                     onChange={(e) => setVideoUrlInput(e.target.value)}
-                    className="flex-1 min-w-0 bg-white/10 rounded-lg px-3 py-2 text-xs placeholder:text-white/25 focus:outline-none focus:bg-white/15"
+                    className="flex-1 min-w-0 bg-white/10 rounded-lg px-3 py-2 text-base placeholder:text-white/25 focus:outline-none focus:bg-white/15"
                   />
                   <button
                     onClick={handleLoadVideo}
@@ -431,7 +448,6 @@ const Room = () => {
           )}
         </div>
 
-        {/* Collapse toggle */}
         {hasToggleableContent && (
           <button
             onClick={() => setControlsOpen((prev) => !prev)}
@@ -444,7 +460,6 @@ const Room = () => {
           </button>
         )}
 
-        {/* Controls */}
         {controlsOpen && (
           <div className="flex flex-col gap-2 pb-2 shrink-0">
             {hasVideo && canControl && (
@@ -454,7 +469,7 @@ const Room = () => {
                   placeholder="Paste a new YouTube link"
                   value={videoUrlInput}
                   onChange={(e) => setVideoUrlInput(e.target.value)}
-                  className="flex-1 min-w-0 bg-white/5 rounded-lg px-3 py-2 text-xs placeholder:text-white/20 focus:outline-none focus:bg-white/10"
+                  className="flex-1 min-w-0 bg-white/5 rounded-lg px-3 py-2 text-base placeholder:text-white/20 focus:outline-none focus:bg-white/10"
                 />
                 <button
                   onClick={handleLoadVideo}
@@ -531,11 +546,10 @@ const Room = () => {
           </div>
         )}
 
-        {/* Chat — fills remaining space, fixed background */}
         <div className="flex-1 min-h-0 flex flex-col bg-white/[0.03] rounded-t-xl mt-1 overflow-hidden">
           <div
             ref={messagesScrollRef}
-            className="flex-1 min-h-0 overflow-y-auto px-3 py-3 flex flex-col gap-1"
+            className="flex-1 min-h-0 overflow-y-auto px-3 py-3 flex flex-col gap-1 no-scrollbar"
             style={{ overscrollBehavior: "contain" }}
           >
             {messages.length === 0 && (
@@ -561,8 +575,8 @@ const Room = () => {
                   )}
                   <div
                     className={`max-w-[75%] px-3 py-2 text-sm leading-snug break-words ${isOwn
-                      ? "bg-violet-600 text-white rounded-2xl rounded-br-md"
-                      : "bg-white/10 text-white/90 rounded-2xl rounded-bl-md"
+                        ? "bg-violet-600 text-white rounded-2xl rounded-br-md"
+                        : "bg-white/10 text-white/90 rounded-2xl rounded-bl-md"
                       }`}
                   >
                     {msg.text}
