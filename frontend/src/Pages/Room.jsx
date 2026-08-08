@@ -194,6 +194,12 @@ const Room = () => {
           autoplay: 0,
           origin: window.location.origin,
           mute: 1,
+          controls: 0,
+          disablekb: 1,
+          modestbranding: 1,
+          rel: 0,
+          fs: 0,
+          iv_load_policy: 3,
         },
         events: {
           onReady: () => {
@@ -575,8 +581,8 @@ const Room = () => {
                   )}
                   <div
                     className={`max-w-[75%] px-3 py-2 text-sm leading-snug break-words ${isOwn
-                        ? "bg-violet-600 text-white rounded-2xl rounded-br-md"
-                        : "bg-white/10 text-white/90 rounded-2xl rounded-bl-md"
+                      ? "bg-violet-600 text-white rounded-2xl rounded-br-md"
+                      : "bg-white/10 text-white/90 rounded-2xl rounded-bl-md"
                       }`}
                   >
                     {msg.text}
