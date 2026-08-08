@@ -1,5 +1,8 @@
 import { useEffect } from "react"
 import { socket } from "./socket"
+import {Route, Routes} from "react-router-dom"
+import Home from "./Pages/Home"
+import Room from "./Pages/Room"
 
 function App() {
   useEffect(()=>{
@@ -13,9 +16,10 @@ function App() {
   },[])
 
   return (
-    <>
-    <h1>InPhase</h1>
-    </>
+    <Routes>
+      <Route path="/" element={<Home />}></Route>
+      <Route path="/room/:roomId" element={<Room />}></Route>
+    </Routes>
   )
 }
 
